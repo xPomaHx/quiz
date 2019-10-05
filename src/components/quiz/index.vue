@@ -94,13 +94,13 @@
           <div class="bro-row">
             <v-select
               v-model="datekrest1"
-              :items="(new Array(31)).fill(0).map((_,i)=>i+1)"
+              :items="dayInMonth(datekrest2,datekrest3)"
               placeholder="--"
               :disabled="vaskrestilipomny"
             ></v-select>
             <v-select
               v-model="datekrest2"
-              :items="['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Ноябрь','Декабрь'].map((el,i)=>({text:el,value:i+1}))"
+              :items="['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'].map((el,i)=>({text:el,value:i+1}))"
               placeholder="--"
               :disabled="vaskrestilipomny"
             ></v-select>
@@ -155,14 +155,10 @@
     margin-left: 94px;"
           >Выберите дату</p>
           <div class="bro-row">
-            <v-select
-              v-model="datebeth1"
-              :items="(new Array(31)).fill(0).map((_,i)=>i+1)"
-              placeholder="--"
-            ></v-select>
+            <v-select v-model="datebeth1" :items="dayInMonth(datebeth2,datebeth3)" placeholder="--"></v-select>
             <v-select
               v-model="datebeth2"
-              :items="['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Ноябрь','Декабрь'].map((el,i)=>({text:el,value:i+1}))"
+              :items="['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'].map((el,i)=>({text:el,value:i+1}))"
               placeholder="--"
             ></v-select>
             <v-select
@@ -184,7 +180,13 @@
           <p>
             <strong>Поздравить вас с вашими именинами – днем памяти вашего небесного покровителя – большая радость для нас. Если хотите чтобы мы это сделали, пожалуйста, оставьте вашу почту</strong>
           </p>
-          <v-text-field v-model="email" label="Ваш e-mail" placeholder="Например name@name.ru"></v-text-field>
+          <v-text-field
+            ref="email"
+            v-model="email"
+            :rules="[rules.email]"
+            label="Ваш e-mail"
+            placeholder="Например name@name.ru"
+          ></v-text-field>
           <v-btn
             outline
             color="indigo"
@@ -275,7 +277,6 @@ export default {
         required: value => !!value || "Обязательно.",
         counter: value => value.length <= 20 || "Max 20 characters",
         email: value => {
-          if (!value) return true;
           const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
           return pattern.test(value) || "Некорректный e-mail.";
         }
@@ -290,12 +291,12 @@ export default {
       namesearch: "",
       vaskrestili: "1",
       vaskrestilipomny: false,
-      datekrest1: null,
-      datekrest2: null,
-      datekrest3: null,
-      datebeth1: null,
-      datebeth2: null,
-      datebeth3: null,
+      datekrest1: undefined,
+      datekrest2: undefined,
+      datekrest3: undefined,
+      datebeth1: undefined,
+      datebeth2: undefined,
+      datebeth3: undefined,
       imyaprikresh: true,
       name2: "",
       name2search: "",
@@ -338,7 +339,7 @@ export default {
       return this.datekrest1 + "-" + this.datekrest2 + "-" + this.datekrest3;
     },
     datebeth() {
-      return this.datekrest1 + "-" + this.datekrest2 + "-" + this.datekrest3;
+      return this.datebeth1 + "-" + this.datebeth2 + "-" + this.datebeth3;
     },
     formData() {
       return [
@@ -361,7 +362,7 @@ export default {
         link: ""
       };
       let name = this.name2 || this.name;
-      let [, m, d] = (this.datebeth || this.datekrest || "").split("-");
+      let [d, m] = (this.datebeth || this.datekrest || "").split("-");
       let date = new Date(`2000-${m}-${d}`);
       let filtredData = this.namesXlsData.filter(el => el[0] == name);
       if (!filtredData.length || !name || !m || !d) {
@@ -374,13 +375,8 @@ export default {
           return -1;
         }
       });
-      let curEl = {};
-      for (let i = 0; i < filtredData.length; i++) {
-        curEl = filtredData[i];
-        if (date < curEl[1]) {
-          break;
-        }
-      }
+      let curEl = filtredData.find(el => date <= el[1]);
+      if (!curEl) curEl = filtredData[0];
       ret.name = curEl[2];
       ret.link = curEl[3];
       ret.discription = curEl[7];
@@ -402,6 +398,8 @@ export default {
           return !(this.imyaprikresh || this.name2);
         case 7:
           return !(this.datebeth1 && this.datebeth2 && this.datebeth3);
+        case 8:
+          return !(this.rules.email(this.email) === true);
         default:
           return false;
       }
@@ -411,6 +409,10 @@ export default {
     }
   },
   methods: {
+    dayInMonth(month = 2, year = 2001) {
+      const maxDay = new Date(year, month, 0).getDate();
+      return new Array(maxDay).fill(0).map((_, i) => i + 1);
+    },
     namesAutoComplite(val) {
       return val && val.length > 1 ? this.names : [];
     },
@@ -420,17 +422,18 @@ export default {
           if (this.vaskrestili == 1) {
             this.currentStep++;
           } else {
-            window.top.location.href =
-              "https://shop.svyatsy.org/krestilnyj-nabor";
+            window.open("https://shop.svyatsy.org/krestilnyj-nabor", "_blank");
+            //window.top.location.href =
+            ("https://shop.svyatsy.org/krestilnyj-nabor");
             //this.currentStep = 10;
           }
           break;
-        case 6:
+        case 7:
           {
             this.getGoods();
             this.currentStep++;
           }
-          break;
+        break;
         case 9:
         case 10:
           {
@@ -440,7 +443,8 @@ export default {
             }
             postData(`${cfg.urls.api}/save.php`, this.formData).then(
               function() {
-                window.top.location.href = nextUrl;
+                window.open(nextUrl, "_blank");
+                //window.top.location.href = nextUrl;
               }
             );
           }
@@ -506,21 +510,20 @@ export default {
         type: "binary"
       });
       var wb = XLS.parse_xlscfb(cfb);
-      wb.SheetNames.forEach(sheetName => {
-        let tar = XLS.utils
-          .sheet_to_json(wb.Sheets[sheetName], {
-            header: 1
-          })
-          .slice(1);
-        tar = tar.map(el => {
-          el[0] = jsUcfirst(el[0]);
-          let [m, d] = el[1].split("/");
-          el[1] = new Date(`2000-${m}-${d}`);
-          return el;
-        });
-        this.namesXlsData = tar;
-        this.names = tar.map(el => el[0]);
+      let tar = XLS.utils
+        .sheet_to_json(wb.Sheets[wb.SheetNames[0]], {
+          header: 1
+        })
+        .slice(1);
+      tar = tar.filter(([name]) => name);
+      tar = tar.map(el => {
+        el[0] = jsUcfirst(el[0]);
+        let [m, d] = el[1].split("/");
+        el[1] = new Date(`2000-${m}-${d}`);
+        return el;
       });
+      this.namesXlsData = tar;
+      this.names = tar.map(el => el[0]);
     };
     var request = new XMLHttpRequest();
     request.open("GET", `./data/names.xls`, true);

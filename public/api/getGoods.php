@@ -14,7 +14,7 @@ function toNum($n)
 {
     return (int)($n);
 }
-$ids = join(",",array_map('toNum',explode(" ",$_GET["ids"])));
+$ids = join(",",array_map('toNum',explode(",",$_GET["ids"])));
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 // Check connection
