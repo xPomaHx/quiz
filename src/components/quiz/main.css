@@ -37,7 +37,7 @@ body {
   border-image-width: 34px 34px 34px 34px;
   border-image-outset: 34px 34px 34px 34px;
   border-image-repeat: repeat repeat;
-  border-image-source: url("~@/assets/border.png");
+  border-image-source: url("~@/assets/border.jpg");
   box-shadow: 0px 40px 60px rgba(0, 0, 0, 0.05);
 }
 button.v-btn.bro-btn-back {
@@ -198,19 +198,24 @@ p strong {
 }
 .step7 .v-select,
 .step5 .v-select {
-  margin-right: 10%;
+  margin-right: 5%;
+  margin-left: 5%;
 }
 .step7 .v-select:nth-last-child(1),
 .step5 .v-select:nth-last-child(1) {
-  margin-right: 0;
+  /* margin-right: 0; */
+}
+.step7 .v-select .v-select__selections,
+.step5 .v-select .v-select__selections{
+  /* width: 70px; */
 }
 .step7 .v-select:nth-last-child(1) .v-select__selections,
 .step5 .v-select:nth-last-child(1) .v-select__selections {
-  width: 70px;
+  /* width: 70px; */
 }
 .step7 .v-select:nth-last-child(2) .v-select__selections,
 .step5 .v-select:nth-last-child(2) .v-select__selections {
-  width: 90px;
+  /* width: 90px; */
 }
 .step7 .v-input,
 .step5 .v-input {

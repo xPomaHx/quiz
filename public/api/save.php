@@ -48,6 +48,7 @@ if (filesize($pathFormDataFile) == 0) {
     "datebeth",
     "imyaprikresh",
     "name2",
+    "isNameNew"
   ));
 }
 my_fputcsv($handle, $decoded);
